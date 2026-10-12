@@ -94,7 +94,7 @@ export default function HomePage() {
         <div className="mb-4 flex justify-center">
           <Calavera className="h-28 w-28" />
         </div>
-        <p className="font-neon text-xl tracking-[0.3em] text-neonViolet text-glow-violet">FAFY</p>
+        <p className="font-neon text-lg tracking-[0.2em] text-neonViolet text-glow-violet sm:text-xl">Fuck Around &amp; Find Yourself</p>
         <h1 className="mx-auto mt-3 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
           Brutally honest advice. <span className="text-neonTeal text-glow-teal">Better questions.</span>{" "}
           Less bullshit.

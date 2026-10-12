@@ -27,8 +27,8 @@ export default function Nav() {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5">
         <Link href="/" className="flex items-center gap-2">
           <Calavera className="h-9 w-9" />
-          <span className="font-neon text-2xl tracking-widest text-neonTeal text-glow-teal">
-            FAFY
+          <span className="font-neon text-base tracking-wider text-neonTeal text-glow-teal sm:text-lg">
+            Fuck Around &amp; Find Yourself
           </span>
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
