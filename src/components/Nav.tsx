@@ -7,6 +7,7 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import Calavera from "./Calavera";
 
 const LINKS = [
+  { href: "/", label: "Home" },
   { href: "/room", label: "The Room" },
   { href: "/writing", label: "Writing" },
   { href: "/advice", label: "Advice" },
