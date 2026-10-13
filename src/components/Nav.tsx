@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/writing", label: "Writing" },
   { href: "/advice", label: "Advice" },
   { href: "/commons", label: "Commons" },
+  { href: "/friends", label: "Friends" },
   { href: "/plans", label: "Plans" },
 ];
 
@@ -46,9 +47,14 @@ export default function Nav() {
             </Link>
           ))}
           {loggedIn ? (
-            <a href="/logout" className="ml-2 rounded px-2.5 py-1.5 text-muted hover:text-cream">
-              Log out
-            </a>
+            <>
+              <Link href="/profile" className="ml-2 rounded px-2.5 py-1.5 text-muted hover:text-cream">
+                Profile
+              </Link>
+              <a href="/logout" className="rounded px-2.5 py-1.5 text-muted hover:text-cream">
+                Log out
+              </a>
+            </>
           ) : (
             <>
               <Link href="/login" className="ml-2 rounded px-2.5 py-1.5 text-muted hover:text-cream">
