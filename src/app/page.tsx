@@ -39,7 +39,7 @@ const CORE = [
     n: "05",
     role: "How connections deepen",
     title: "The Ladder",
-    body: "Friendship is allowed to grow here — one mutual, logged step at a time. After a room: invite a participant to a private 1:1 that stays anonymous, then, if both people choose, send a friend request. Every connection is recorded internally so the platform can keep people accountable.",
+    body: "Friendship is allowed to grow here — one mutual, logged step at a time. After a room: invite a participant to a private 1:1 that stays anonymous, then, if both people choose, send a friend request. Every connection is recorded internally so the platform can keep people accountable. Note: the 1:1 step unlocks once there are enough members to pair — during early beta, rooms come first.",
     cta: "See it at the end of the demo",
     href: "/room",
   },
