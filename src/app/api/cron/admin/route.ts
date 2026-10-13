@@ -13,14 +13,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const sb = supabaseAdmin();
-  const { action, username, plan, from_username, to_username, body } = await req.json();
+  const { action, username, plan, plan_override, from_username, to_username, body } = await req.json();
 
   if (action === "set_plan") {
     const { data: user } = await sb.from("profiles").select("id").eq("username", username).single();
     if (!user) return NextResponse.json({ error: "user not found" }, { status: 404 });
-    const { error } = await sb.from("profiles").update({ plan }).eq("id", user.id);
+    const updates: Record<string, string> = {};
+    if (plan) updates.plan = plan;
+    if (plan_override !== undefined) updates.plan_override = plan_override;
+    const { error } = await sb.from("profiles").update(updates).eq("id", user.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ ok: true, username, plan });
+    return NextResponse.json({ ok: true, username, plan, plan_override });
   }
 
   if (action === "send_dm") {
