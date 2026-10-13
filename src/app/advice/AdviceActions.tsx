@@ -33,8 +33,8 @@ export default function AdviceActions() {
       setChecked(true);
       if (data.user) {
         loadThreads(data.user.id);
-        supabaseBrowser().from("profiles").select("plan").eq("id", data.user.id).single()
-          .then(({ data: p }) => setPlan((p as { plan?: string } | null)?.plan ?? null));
+        supabaseBrowser().from("profiles").select("plan,plan_override").eq("id", data.user.id).single()
+          .then(({ data: p }) => setPlan(((p as { plan?: string; plan_override?: string } | null)?.plan_override ?? (p as { plan?: string } | null)?.plan) ?? null));
       }
     });
   }, []);

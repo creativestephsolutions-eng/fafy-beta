@@ -25,5 +25,6 @@ export async function getProfile() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return null;
   const { data } = await sb.from("profiles").select("*").eq("id", user.id).single();
-  return data ? { ...data, user } : null;
+  // plan_override (e.g. gifted Plus) takes precedence over the Stripe-synced plan
+  return data ? { ...data, plan: data.plan_override || data.plan, user } : null;
 }
