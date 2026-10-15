@@ -18,7 +18,10 @@ export default async function WritingPostPage({ params }: { params: { id: string
   if (params.id === "youre-welcome") return <PostView />;
 
   const sb = supabaseAdmin();
-  // DEBUG: try without .single() to see raw result
+  // DEBUG: list all IDs and compare
+  const { data: all } = await sb.from("writing_posts").select("id, title");
+  const ids = (all ?? []).map((r) => r.id);
+  const match = ids.includes(params.id);
   const { data: posts, error } = await sb.from("writing_posts").select("id, title").eq("id", params.id);
   if (error || !posts || posts.length === 0) {
     return (
@@ -27,6 +30,9 @@ export default async function WritingPostPage({ params }: { params: { id: string
         <p className="text-white/70 mt-2">params.id = {JSON.stringify(params.id)}</p>
         <p className="text-white/70 mt-2">error = {JSON.stringify(error?.message || null)}</p>
         <p className="text-white/70 mt-2">rows = {JSON.stringify(posts?.length ?? null)}</p>
+        <p className="text-white/70 mt-2">total in table = {ids.length}</p>
+        <p className="text-white/70 mt-2">exact match in list = {JSON.stringify(match)}</p>
+        <p className="text-white/70 mt-2 break-all">first id = {JSON.stringify(ids[0] || null)}</p>
       </main>
     );
   }
