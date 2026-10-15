@@ -4,10 +4,15 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 
+async function requireAdmin() {
+  const p = await getProfile();
+  return p?.is_admin ? p : null;
+}
+
 // Admin-only: publish a Writing post. Body: { title, body, series?, questions: string[] }
 export async function POST(req: Request) {
-  const p = await getProfile();
-  if (!p?.is_admin) {
+  const p = await requireAdmin();
+  if (!p) {
     return NextResponse.json({ ok: false, error: "not authorized" }, { status: 403 });
   }
   let payload: any;
@@ -44,4 +49,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: qErr.message }, { status: 500 });
   }
   return NextResponse.json({ ok: true, id: post.id });
+}
+
+// Admin-only: delete a Writing post. Body: { id }
+export async function DELETE(req: Request) {
+  const p = await requireAdmin();
+  if (!p) {
+    return NextResponse.json({ ok: false, error: "not authorized" }, { status: 403 });
+  }
+  const payload = await req.json().catch(() => null);
+  const id = String(payload?.id || "");
+  if (!id) return NextResponse.json({ ok: false, error: "id is required" }, { status: 400 });
+
+  const sb = supabaseAdmin();
+  const { error } = await sb.from("writing_posts").delete().eq("id", id);
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }
