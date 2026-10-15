@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { Kicker, Divider } from "@/components/ui";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export const metadata = {
-  title: "The Writing · FAFY",
-  description: "Things I notice that refuse to mind their business.",
-};
-
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Writing — FAFY",
+  description: "Stories and observations. Read them, argue with them, answer the questions.",
+};
 
 export default async function WritingIndexPage() {
   const sb = supabaseAdmin();
@@ -16,40 +15,49 @@ export default async function WritingIndexPage() {
     .select("id, title, body, series_label, created_at")
     .order("created_at", { ascending: false });
 
+  // Dedupe by title (keep newest) as a safety net against duplicate publishes
+  const seenTitles = new Set<string>();
+  const uniquePosts = (posts ?? []).filter((p) => {
+    if (seenTitles.has(p.title)) return false;
+    seenTitles.add(p.title);
+    return true;
+  });
+
   return (
-    <div>
-      <Kicker>The Writing</Kicker>
-      <h1 className="mb-2 text-3xl font-extrabold tracking-tight">
-        <span className="text-neonTeal text-glow-teal">Things I notice</span> that refuse to mind their business
-      </h1>
-      <p className="mb-6 max-w-2xl text-cream/85">
-        I&apos;m Stephanie. This is where my day-to-day observations, the Sayings series, and the
-        random little pieces of life that won&apos;t leave me alone will land. Expect blunt honesty,
-        smart-ass commentary, and at least one question that makes you realize you&apos;ve been
-        arguing with the wrong part of the problem.
+    <main className="mx-auto max-w-3xl px-4 py-10">
+      <h1 className="font-display text-4xl text-neonTeal">Writing</h1>
+      <p className="mt-2 text-white/70">
+        Stories and observations. Read them, argue with them, answer the questions.
       </p>
-      <div className="space-y-4">
-        {(posts ?? []).map((p) => (
-          <Link key={p.id} href={`/writing/${p.id}`} className="card block hover:border-neonTeal/60">
-            <h2 className="text-xl font-bold text-neonTeal">{p.title}</h2>
-            {p.series_label && <p className="text-sm text-neonCoral">{p.series_label}</p>}
-            <p className="mt-2 text-sm text-cream/75">
-              {p.body.length > 160 ? p.body.slice(0, 160).trimEnd() + "…" : p.body}
-            </p>
+
+      <div className="mt-8 space-y-6">
+        {uniquePosts.map((p) => (
+          <Link key={p.id} href={`/writing/${p.id}`} className="card block hover:border-neonTeal/60 transition">
+            {p.series_label && (
+              <p className="text-xs uppercase tracking-widest text-neonViolet">{p.series_label}</p>
+            )}
+            <h2 className="font-display text-2xl text-white mt-1">{p.title}</h2>
+            <p className="mt-2 text-white/70 line-clamp-3">{p.body.slice(0, 200)}…</p>
+            <p className="mt-3 text-sm text-neonTeal">Read & answer →</p>
           </Link>
         ))}
-        <Link href="/writing/youre-welcome" className="card block hover:border-neonTeal/60">
-          <h2 className="text-xl font-bold text-neonTeal">You&apos;re Welcome</h2>
-          <p className="text-sm text-neonCoral">A welcome, without the pressure to impress</p>
-          <p className="mt-2 text-sm text-cream/75">
-            Hey. So for my first piece of Writing, I&apos;m taking the pressure to impress off myself and not doing one…
+
+        <Link href="/writing/youre-welcome" className="card block hover:border-neonTeal/60 transition">
+          <h2 className="font-display text-2xl text-white">You&apos;re Welcome</h2>
+          <p className="mt-2 text-white/70 line-clamp-3">
+            I have no idea what I&apos;m doing here, but I&apos;m doing it anyway. Welcome to the ride…
           </p>
+          <p className="mt-3 text-sm text-neonTeal">Read & answer →</p>
+        </Link>
+
+        <Link href="/advice" className="card block border-neonCoral/40 hover:border-neonCoral transition">
+          <h2 className="font-display text-2xl text-white">Go to Advice</h2>
+          <p className="mt-2 text-white/70">
+            Got a question? Drop it in Advice and get a brutally honest answer.
+          </p>
+          <p className="mt-3 text-sm text-neonCoral">Ask →</p>
         </Link>
       </div>
-      <Divider />
-      <div className="flex flex-wrap gap-3">
-        <Link href="/advice" className="btn-ghost">Go to Advice</Link>
-      </div>
-    </div>
+    </main>
   );
 }
