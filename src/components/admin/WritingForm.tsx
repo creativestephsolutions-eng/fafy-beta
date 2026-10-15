@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function WritingForm() {
   const [title, setTitle] = useState("");
@@ -9,9 +9,12 @@ export default function WritingForm() {
   const [questions, setQuestions] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const submitted = useRef(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitted.current) return;
+    submitted.current = true;
     setBusy(true);
     setMsg(null);
     try {
@@ -27,9 +30,11 @@ export default function WritingForm() {
         setTitle(""); setSeries(""); setBody(""); setQuestions("");
       } else {
         setMsg({ ok: false, text: data.error || `Failed (status ${res.status}).` });
+        submitted.current = false;
       }
     } catch (err: any) {
       setMsg({ ok: false, text: err?.message || "Network error." });
+      submitted.current = false;
     } finally {
       setBusy(false);
     }
