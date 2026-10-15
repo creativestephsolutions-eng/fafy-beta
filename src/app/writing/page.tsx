@@ -10,14 +10,15 @@ export const metadata = {
 
 export default async function WritingIndexPage() {
   const sb = supabaseAdmin();
-  const { data: posts } = await sb
-    .from("writing_posts")
-    .select("id, title, body, series_label, created_at")
-    .order("created_at", { ascending: false });
+  // Fetch all and process in JS (avoids stale filtered-query caching)
+  const { data: allPosts } = await sb.from("writing_posts").select("*");
+  const sorted = (allPosts ?? []).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   // Dedupe by title (keep newest) as a safety net against duplicate publishes
   const seenTitles = new Set<string>();
-  const uniquePosts = (posts ?? []).filter((p) => {
+  const uniquePosts = sorted.filter((p) => {
     if (seenTitles.has(p.title)) return false;
     seenTitles.add(p.title);
     return true;
