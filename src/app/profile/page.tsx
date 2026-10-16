@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase-server";
 import { Kicker } from "@/components/ui";
+import StoriesManager from "@/components/StoriesManager";
 
 async function updateProfile(form: FormData) {
   "use server";
@@ -53,6 +54,7 @@ export default async function ProfilePage() {
           <button type="submit" className="btn-neon">Save</button>
         </div>
       </form>
+      <StoriesManager />
     </div>
   );
 }

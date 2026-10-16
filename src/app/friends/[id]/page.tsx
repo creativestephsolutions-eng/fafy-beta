@@ -13,6 +13,7 @@ export default function FriendChatPage({ params }: { params: { id: string } }) {
   const [me, setMe] = useState<string | null>(null);
   const [friend, setFriend] = useState<{ username: string; bio: string } | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [stories, setStories] = useState<{ id: string; title: string | null; body: string }[]>([]);
   const [input, setInput] = useState("");
   const [denied, setDenied] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,10 @@ export default function FriendChatPage({ params }: { params: { id: string } }) {
       const { data: prof } = await sb.from("profiles")
         .select("username, bio").eq("id", friendId).single();
       if (prof) setFriend(prof);
+      const { data: fstories } = await sb.from("user_stories")
+        .select("id, title, body").eq("author_id", friendId).eq("status", "private")
+        .order("created_at", { ascending: false });
+      if (fstories) setStories(fstories);
       load(sb, user.id);
       const t = setInterval(() => load(sb, user.id), 4000);
       return () => clearInterval(t);
@@ -68,6 +73,21 @@ export default function FriendChatPage({ params }: { params: { id: string } }) {
         {friend?.username ?? "…"}
       </h1>
       {friend?.bio && <p className="mb-4 text-sm text-cream/70">{friend.bio}</p>}
+      {stories.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-2 text-lg font-extrabold text-cream">
+            <span className="text-neonViolet">Their</span> stories
+          </h2>
+          <div className="space-y-3">
+            {stories.map((s) => (
+              <div key={s.id} className="card">
+                {s.title && <h3 className="font-display text-lg text-white">{s.title}</h3>}
+                <p className="mt-1 whitespace-pre-wrap text-sm text-cream/85">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="card mb-4 max-h-[50vh] space-y-2 overflow-y-auto">
         {msgs.length === 0 && <p className="text-sm text-muted">No messages yet. Say hi.</p>}
         {msgs.map((m) => (

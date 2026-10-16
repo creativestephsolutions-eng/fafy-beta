@@ -6,11 +6,13 @@ import WritingForm from "@/components/admin/WritingForm";
 import AnswerAskForm from "@/components/admin/AnswerAskForm";
 import ReportButtons from "@/components/admin/ReportButtons";
 import SetPlanForm from "@/components/admin/SetPlanForm";
+import StoriesReviewList from "@/components/admin/StoriesReviewList";
 
 const TABS = [
   ["ask", "Advice Inbox"],
   ["reports", "Room Reports"],
   ["writing", "Write a Post"],
+  ["stories", "Stories"],
   ["members", "Members"],
   ["ladder", "Friend Log"],
 ] as const;
@@ -76,6 +78,8 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
       )}
 
       {tab === "writing" && <WritingForm />}
+
+      {tab === "stories" && <StoriesReviewList />}
 
       {tab === "members" && (
         <div className="space-y-2">

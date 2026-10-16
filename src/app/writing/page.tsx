@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseServer } from "@/lib/supabase-server";
+import CommunityStories, { type CommunityStory } from "@/components/CommunityStories";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,41 @@ export default async function WritingIndexPage() {
     seenTitles.add(p.title);
     return true;
   });
+
+  // Community stories: members only, anonymous. author_id is never selected.
+  const userSb = supabaseServer();
+  const { data: { user } } = await userSb.auth.getUser();
+  let communityStories: CommunityStory[] = [];
+  if (user) {
+    const { data: stories } = await sb.from("user_stories")
+      .select("id, title, body, created_at")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+    const ids = (stories ?? []).map((s: any) => s.id);
+    let votesByStory: Record<string, { likes: number; dislikes: number }> = {};
+    let myVotes: Record<string, "like" | "dislike"> = {};
+    if (ids.length > 0) {
+      const { data: votes } = await sb.from("story_votes").select("story_id, vote").in("story_id", ids);
+      for (const v of votes ?? []) {
+        const agg = votesByStory[v.story_id] ?? { likes: 0, dislikes: 0 };
+        if (v.vote === "like") agg.likes++;
+        else agg.dislikes++;
+        votesByStory[v.story_id] = agg;
+      }
+      const { data: mine } = await sb.from("story_votes")
+        .select("story_id, vote").in("story_id", ids).eq("user_id", user.id);
+      for (const v of mine ?? []) myVotes[v.story_id] = v.vote;
+    }
+    communityStories = (stories ?? []).map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      body: s.body,
+      created_at: s.created_at,
+      likes: votesByStory[s.id]?.likes ?? 0,
+      dislikes: votesByStory[s.id]?.dislikes ?? 0,
+      myVote: myVotes[s.id] ?? null,
+    }));
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -58,6 +95,24 @@ export default async function WritingIndexPage() {
           </p>
           <p className="mt-3 text-sm text-neonCoral">Ask →</p>
         </Link>
+      </div>
+
+      <div className="mt-12 border-t border-white/10 pt-8">
+        <h2 className="font-display text-3xl text-neonViolet">Community Stories</h2>
+        <p className="mt-2 text-white/70">
+          Stories from members, posted anonymously. Write yours from your profile —
+          I read every one before it goes live.
+        </p>
+        <div className="mt-6">
+          {user ? (
+            <CommunityStories initial={communityStories} />
+          ) : (
+            <p className="text-sm text-muted">
+              <Link href="/login" className="text-neonTeal hover:underline">Log in</Link>
+              {" "}to read community stories.
+            </p>
+          )}
+        </div>
       </div>
     </main>
   );
