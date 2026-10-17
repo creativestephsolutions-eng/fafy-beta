@@ -124,6 +124,18 @@ export default function HomePage() {
         </p>
       </section>
 
+      {/* EARLY BETA NOTICE */}
+      <section className="py-2">
+        <div className="card border-neonCoral/40">
+          <p className="text-sm text-cream/85">
+            <strong className="text-neonCoral">Heads up: FAFY is brand new.</strong> Like,
+            just-hatched new. Some features — the Rooms especially — need enough people here to
+            actually work, because I can&apos;t pair you with someone who doesn&apos;t exist yet.
+            Join, invite your friends, and let&apos;s get this thing moving. The good stuff is coming.
+          </p>
+        </div>
+      </section>
+
       <Divider />
 
       {/* MISSION */}

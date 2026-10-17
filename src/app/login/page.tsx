@@ -24,6 +24,10 @@ export default function LoginPage() {
       <h1 className="mb-4 text-3xl font-extrabold tracking-tight">
         <span className="text-neonTeal text-glow-teal">Log in</span>
       </h1>
+      <p className="mb-4 text-sm text-cream/80">
+        FAFY&apos;s just getting started — some features need more members before they fully switch
+        on. Log in, bring your friends, let&apos;s build this thing.
+      </p>
       <form onSubmit={onSubmit} className="card space-y-3">
         <input className="input" placeholder="Email" type="email" value={email}
           onChange={(e) => setEmail(e.target.value)} required />

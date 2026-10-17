@@ -34,6 +34,7 @@ export default function InvitePanel() {
       <p className="mb-3 text-sm text-cream/80">
         Share your link — friends get their first Core month for <strong className="text-neonTeal">$7</strong> instead of $9.
         When <strong className="text-neonTeal">5 friends join</strong>, you get a <strong className="text-neonTeal">free month</strong>.
+        The Rooms need real people to pair you with — every friend you bring gets us all closer to the good stuff.
       </p>
       <div className="mb-3 flex items-stretch gap-2">
         <input className="input flex-1 font-mono text-sm" readOnly value={link}
