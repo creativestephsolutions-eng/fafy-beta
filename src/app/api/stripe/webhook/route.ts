@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getStripe, mapSubscriptionStatus, planFromPrice } from "@/lib/stripe";
+import { getStripe, mapSubscriptionStatus, planFromPrice, getFreeMonthCoupon } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs"; // Stripe SDK needs Node, not the edge runtime
@@ -8,6 +8,43 @@ export const runtime = "nodejs"; // Stripe SDK needs Node, not the edge runtime
 function currentPeriodEnd(sub: Stripe.Subscription): string | null {
   const ts = (sub as unknown as { current_period_end?: number }).current_period_end;
   return typeof ts === "number" ? new Date(ts * 1000).toISOString() : null;
+}
+
+/**
+ * Invite reward: when a member has 5+ accepted invites (invitees holding an
+ * active/trialing Stripe subscription) and hasn't received the free month yet,
+ * apply the 100%-off-once coupon to their active subscription.
+ */
+async function checkInviteReward(stripe: Stripe, userId: string) {
+  const sb = supabaseAdmin();
+  const { data: me } = await sb.from("profiles")
+    .select("invite_reward_given").eq("id", userId).single();
+  if (!me || me.invite_reward_given) return;
+
+  const { data: invitees } = await sb.from("profiles").select("id").eq("invited_by", userId);
+  const inviteeIds = (invitees ?? []).map((r: any) => r.id);
+  if (inviteeIds.length < 5) return;
+  const { data: subs } = await sb.from("subscriptions")
+    .select("user_id").in("user_id", inviteeIds).in("status", ["active", "trialing"])
+    .not("stripe_subscription_id", "is", null);
+  const accepted = new Set((subs ?? []).map((s: any) => s.user_id)).size;
+  if (accepted < 5) return;
+
+  // Find the inviter's own active subscription to discount.
+  const { data: mine } = await sb.from("subscriptions")
+    .select("stripe_subscription_id").eq("user_id", userId)
+    .in("status", ["active", "trialing"]).not("stripe_subscription_id", "is", null)
+    .limit(1).maybeSingle();
+  if (!mine?.stripe_subscription_id) return; // no active sub yet — checked again on their next subscribe
+
+  try {
+    const coupon = await getFreeMonthCoupon(stripe);
+    await stripe.subscriptions.update(mine.stripe_subscription_id, { coupon: coupon.id });
+    await sb.from("profiles").update({ invite_reward_given: true }).eq("id", userId);
+    console.log("[stripe] invite free month applied", { user_id: userId, accepted });
+  } catch (err) {
+    console.error("[stripe] invite reward failed:", err instanceof Error ? err.message : err);
+  }
 }
 
 async function handleEvent(stripe: Stripe, event: Stripe.Event) {
@@ -59,6 +96,15 @@ async function handleEvent(stripe: Stripe, event: Stripe.Event) {
       // Keep the member's plan in sync with their live subscription.
       const { error: pErr } = await sb.from("profiles").update({ plan }).eq("id", userId);
       if (pErr) console.error("[stripe] profile plan sync failed:", pErr.message);
+
+      // Invite rewards: the subscriber may have just hit 5 accepted invites,
+      // or this new subscription may be the one that pushes their inviter to 5.
+      const status = mapSubscriptionStatus(sub.status);
+      if (status === "active" || status === "trialing") {
+        await checkInviteReward(stripe, userId);
+        const { data: sub } = await sb.from("profiles").select("invited_by").eq("id", userId).single();
+        if (sub?.invited_by) await checkInviteReward(stripe, sub.invited_by);
+      }
       break;
     }
 

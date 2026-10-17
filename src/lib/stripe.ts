@@ -61,3 +61,41 @@ export function planFromPrice(priceId: string | null | undefined): "core" | "plu
   if (priceId === process.env.STRIPE_PRICE_PLUS) return "plus";
   return null;
 }
+
+/**
+ * Get-or-create the "$2 off the first Core invoice" coupon behind the friend-invite
+ * $7 first month (Core is $9/mo). Applied directly as a checkout discount, never
+ * exposed as a public promo code.
+ */
+export async function getInviteCoupon(stripe: Stripe): Promise<Stripe.Coupon> {
+  const id = "fafy-invite-7";
+  try {
+    return await stripe.coupons.retrieve(id);
+  } catch {
+    return await stripe.coupons.create({
+      id,
+      amount_off: 200,
+      currency: "usd",
+      duration: "once",
+      name: "Friend invite: first Core month $7",
+    });
+  }
+}
+
+/**
+ * Get-or-create the 100%-off-once coupon behind the inviter free month
+ * (5 accepted invites). Applied directly to the inviter's subscription.
+ */
+export async function getFreeMonthCoupon(stripe: Stripe): Promise<Stripe.Coupon> {
+  const id = "fafy-free-month";
+  try {
+    return await stripe.coupons.retrieve(id);
+  } catch {
+    return await stripe.coupons.create({
+      id,
+      percent_off: 100,
+      duration: "once",
+      name: "Invite reward: free month",
+    });
+  }
+}

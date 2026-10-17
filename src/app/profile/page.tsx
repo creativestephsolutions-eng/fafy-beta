@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase-server";
 import { Kicker } from "@/components/ui";
 import StoriesManager from "@/components/StoriesManager";
+import InvitePanel from "@/components/InvitePanel";
 
 async function updateProfile(form: FormData) {
   "use server";
@@ -55,6 +56,7 @@ export default async function ProfilePage() {
         </div>
       </form>
       <StoriesManager />
+      <InvitePanel />
     </div>
   );
 }
